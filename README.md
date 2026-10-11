@@ -19,21 +19,7 @@ Python • FastAPI • React • Vite • SQLite/JSON • pytest
 ### 🤖 AI Tools
 ChatGPT for development and debugging support. Optional implementation of Large Language Model to parse natural language disruptions. Scheduling does not require any external API.
 
-### 🚀 To Run Locally
 
-**Backend**
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-**Frontend**
-```bash
-cd frontend
-npm install
-npm run dev
-```
 
 ### 👥 Team RailFlow
 Created for VORTEXA 3.0.
