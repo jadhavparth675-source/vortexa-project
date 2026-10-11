@@ -37,7 +37,7 @@ export default function Header({
         </div>
         <div>
           <div className="brand-title">
-            RAILFLOW <span className="brand-tag">CONTROL ROOM</span>
+            RAILSYNC <span className="brand-tag">CONTROL ROOM</span>
           </div>
           <div className="brand-subtitle">
             Railway Disruption & Platform Conflict Simulator

@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import Train from './Train';
 
+// Formats minute integers into 24-hour HH:MM format
 function minutesToHhmm(minutes) {
   if (minutes == null || isNaN(minutes)) return '--:--';
   const norm = Math.max(0, minutes) % 1440;
@@ -17,7 +19,7 @@ export default function PlatformTimeline({
 }) {
   const [selectedTrain, setSelectedTrain] = useState(null);
 
-  // Identify any train involved in conflicts
+  // Set of train IDs involved in conflicts
   const conflictingTrainIds = useMemo(() => {
     const ids = new Set();
     validationErrors.forEach((err) => {
@@ -28,7 +30,7 @@ export default function PlatformTimeline({
     return ids;
   }, [validationErrors]);
 
-  // Compute dynamic timeline boundaries
+  // Compute dynamic timeline boundaries and ticks
   const { timelineStart, timelineEnd, totalDuration, timeTicks } = useMemo(() => {
     let minT = 600; // default 10:00
     let maxT = 720; // default 12:00
@@ -48,12 +50,11 @@ export default function PlatformTimeline({
       maxT = Math.max(...allTimes);
     }
 
-    // Add 15 min padding and align to 15 min intervals
+    // Pad by 15 mins and align to 15-min intervals
     const start = Math.floor(Math.max(0, minT - 15) / 15) * 15;
     const end = Math.ceil((maxT + 15) / 15) * 15;
     const duration = Math.max(30, end - start);
 
-    // Create 15-minute ticks
     const ticks = [];
     for (let t = start; t <= end; t += 15) {
       ticks.push(t);
@@ -67,8 +68,24 @@ export default function PlatformTimeline({
     };
   }, [trains, closures]);
 
+  // Calculate current time position for the vertical "now" line
+  const nowPos = useMemo(() => {
+    const now = new Date();
+    const realMinutes = now.getHours() * 60 + now.getMinutes();
+    const effectiveMinutes =
+      realMinutes >= timelineStart && realMinutes <= timelineEnd
+        ? realMinutes
+        : timelineStart + Math.round(totalDuration * 0.32);
+    const pct = Math.max(0, Math.min(100, ((effectiveMinutes - timelineStart) / totalDuration) * 100));
+    return {
+      minutes: effectiveMinutes,
+      pct,
+    };
+  }, [timelineStart, timelineEnd, totalDuration]);
+
   return (
     <div className="timeline-container">
+      {/* Header with Title and Status Color Legend */}
       <div className="timeline-header-bar">
         <div className="timeline-title">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -88,151 +105,151 @@ export default function PlatformTimeline({
       </div>
 
       <div className="timeline-scroll-area">
-        {/* Time Axis Ruler */}
-        <div className="timeline-ruler-row">
-          <div className="timeline-platform-label-spacer">TRACK BAY</div>
-          <div className="timeline-ruler-track">
-            {timeTicks.map((t) => {
-              const posPercent = ((t - timelineStart) / totalDuration) * 100;
+        <div className="timeline-content-inner">
+          {/* Time Axis Ruler */}
+          <div className="timeline-ruler-row">
+            <div className="timeline-platform-label-spacer">TRACK BAY</div>
+            <div className="timeline-ruler-track">
+              {timeTicks.map((t) => {
+                const posPercent = ((t - timelineStart) / totalDuration) * 100;
+                return (
+                  <div
+                    key={t}
+                    className="timeline-tick"
+                    style={{ left: `${posPercent}%` }}
+                  >
+                    <div className="tick-line"></div>
+                    <div className="tick-label font-mono">{minutesToHhmm(t)}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Platform Lanes rendered as Railway Tracks */}
+          <div className="timeline-lanes">
+            {platforms.map((platform) => {
+              const platformTrains = trains.filter(
+                (tr) => tr.assigned_platform === platform.platform_id
+              );
+              const platformClosures = closures.filter(
+                (c) => c.platform_id === platform.platform_id
+              );
+
               return (
-                <div
-                  key={t}
-                  className="timeline-tick"
-                  style={{ left: `${posPercent}%` }}
-                >
-                  <div className="tick-line"></div>
-                  <div className="tick-label font-mono">{minutesToHhmm(t)}</div>
+                <div key={platform.platform_id} className="timeline-lane">
+                  {/* Platform Info Bay */}
+                  <div className="platform-meta-cell">
+                    <div className="platform-tag font-mono">{platform.platform_id}</div>
+                    <div className="platform-name">{platform.name}</div>
+                    {platform.description && (
+                      <div className="platform-desc truncate">{platform.description}</div>
+                    )}
+                  </div>
+
+                  {/* Railway Track Lane with Platform Edge Strip and Rails */}
+                  <div className="track-lane">
+                    {/* Platform edge tactile safety strip */}
+                    <div className="platform-edge-strip">
+                      <span className="platform-edge-tag font-mono">{platform.platform_id}</span>
+                      <span className="platform-edge-tactile"></span>
+                    </div>
+
+                    {/* Timeline background vertical grid lines */}
+                    {timeTicks.map((t) => {
+                      const posPercent = ((t - timelineStart) / totalDuration) * 100;
+                      return (
+                        <div
+                          key={`grid-${t}`}
+                          className="lane-grid-line"
+                          style={{ left: `${posPercent}%` }}
+                        />
+                      );
+                    })}
+
+                    {/* Railway Track Bed: Sleepers (ties) + 2 Steel Rails */}
+                    <div className="railway-track-bed">
+                      <div className="track-sleepers"></div>
+                      <div className="steel-rail steel-rail-top"></div>
+                      <div className="steel-rail steel-rail-bottom"></div>
+                    </div>
+
+                    {/* Closed Platform Overlay with Red/White Hazard Stripes */}
+                    {platformClosures.map((cl, idx) => {
+                      const leftPct = Math.max(
+                        0,
+                        ((cl.start_time - timelineStart) / totalDuration) * 100
+                      );
+                      const widthPct = Math.max(
+                        3,
+                        ((cl.end_time - cl.start_time) / totalDuration) * 100
+                      );
+
+                      return (
+                        <div
+                          key={cl.closure_id || `closure-${idx}`}
+                          className="closure-block"
+                          style={{
+                            left: `${leftPct}%`,
+                            width: `${widthPct}%`,
+                          }}
+                          title={`Platform ${platform.platform_id} Closed: ${minutesToHhmm(
+                            cl.start_time
+                          )} - ${minutesToHhmm(cl.end_time)} (${cl.reason || 'Maintenance'})`}
+                        >
+                          <div className="closure-badge">
+                            <span className="closure-hazard-icon">⚠️</span>
+                            <span className="closure-title">Closed</span>
+                            <span className="closure-times font-mono">
+                              {minutesToHhmm(cl.start_time)}–{minutesToHhmm(cl.end_time)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Realistic SVG Train Occupancy Blocks */}
+                    {platformTrains.map((tr) => {
+                      const leftPct = Math.max(
+                        0,
+                        ((tr.arrival_time - timelineStart) / totalDuration) * 100
+                      );
+                      const widthPct = Math.max(
+                        6,
+                        ((tr.departure_time - tr.arrival_time) / totalDuration) * 100
+                      );
+
+                      const isConflict = conflictingTrainIds.has(tr.train_id);
+                      const isSelected = selectedTrain?.train_id === tr.train_id;
+
+                      return (
+                        <Train
+                          key={tr.train_id}
+                          train={tr}
+                          isConflict={isConflict}
+                          isSelected={isSelected}
+                          leftPct={leftPct}
+                          widthPct={widthPct}
+                          onClick={() => setSelectedTrain(isSelected ? null : tr)}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
           </div>
-        </div>
 
-        {/* Platform Lanes */}
-        <div className="timeline-lanes">
-          {platforms.map((platform) => {
-            const platformTrains = trains.filter(
-              (tr) => tr.assigned_platform === platform.platform_id
-            );
-            const platformClosures = closures.filter(
-              (c) => c.platform_id === platform.platform_id
-            );
-
-            return (
-              <div key={platform.platform_id} className="timeline-lane">
-                {/* Platform Label */}
-                <div className="platform-meta-cell">
-                  <div className="platform-tag font-mono">{platform.platform_id}</div>
-                  <div className="platform-name">{platform.name}</div>
-                  {platform.description && (
-                    <div className="platform-desc">{platform.description}</div>
-                  )}
-                </div>
-
-                {/* Track Lane Visual */}
-                <div className="track-lane">
-                  {/* Background grid vertical lines */}
-                  {timeTicks.map((t) => {
-                    const posPercent = ((t - timelineStart) / totalDuration) * 100;
-                    return (
-                      <div
-                        key={`grid-${t}`}
-                        className="lane-grid-line"
-                        style={{ left: `${posPercent}%` }}
-                      />
-                    );
-                  })}
-
-                  {/* Rails Representation */}
-                  <div className="rail-track-line"></div>
-
-                  {/* Closures Overlay */}
-                  {platformClosures.map((cl, idx) => {
-                    const leftPct = Math.max(
-                      0,
-                      ((cl.start_time - timelineStart) / totalDuration) * 100
-                    );
-                    const widthPct = Math.max(
-                      2,
-                      ((cl.end_time - cl.start_time) / totalDuration) * 100
-                    );
-
-                    return (
-                      <div
-                        key={cl.closure_id || `closure-${idx}`}
-                        className="closure-block"
-                        style={{
-                          left: `${leftPct}%`,
-                          width: `${widthPct}%`,
-                        }}
-                        title={`Platform ${platform.platform_id} Closed: ${minutesToHhmm(
-                          cl.start_time
-                        )} - ${minutesToHhmm(cl.end_time)} (${cl.reason || 'Maintenance'})`}
-                      >
-                        <div className="closure-inner">
-                          <span className="closure-hazard-icon">⚠️</span>
-                          <span className="closure-text truncate">
-                            CLOSED: {minutesToHhmm(cl.start_time)}–{minutesToHhmm(cl.end_time)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Scheduled Trains */}
-                  {platformTrains.map((tr) => {
-                    const leftPct = Math.max(
-                      0,
-                      ((tr.arrival_time - timelineStart) / totalDuration) * 100
-                    );
-                    const widthPct = Math.max(
-                      4,
-                      ((tr.departure_time - tr.arrival_time) / totalDuration) * 100
-                    );
-
-                    const isConflict = conflictingTrainIds.has(tr.train_id);
-                    let statusClass = 'train-ontime';
-
-                    if (isConflict) {
-                      statusClass = 'train-conflict';
-                    } else if (tr.status === 'delayed' || (tr.delay_minutes && tr.delay_minutes > 0)) {
-                      statusClass = 'train-delayed';
-                    } else if (tr.status === 'reassigned') {
-                      statusClass = 'train-reassigned';
-                    }
-
-                    const isSelected = selectedTrain?.train_id === tr.train_id;
-
-                    return (
-                      <div
-                        key={tr.train_id}
-                        className={`train-occupancy-block ${statusClass} ${
-                          isSelected ? 'is-selected' : ''
-                        }`}
-                        style={{
-                          left: `${leftPct}%`,
-                          width: `${widthPct}%`,
-                        }}
-                        onClick={() => setSelectedTrain(isSelected ? null : tr)}
-                      >
-                        <div className="train-block-header">
-                          <span className="train-id-badge font-mono">{tr.train_id}</span>
-                          <span className="train-time-range font-mono">
-                            {tr.formatted_arrival || minutesToHhmm(tr.arrival_time)}–
-                            {tr.formatted_departure || minutesToHhmm(tr.departure_time)}
-                          </span>
-                        </div>
-                        <div className="train-block-name truncate">{tr.name}</div>
-                        {tr.delay_minutes > 0 && (
-                          <div className="train-delay-pill">+{tr.delay_minutes}m</div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+          {/* Vertical "Now" Time Indicator spanning across all platform tracks */}
+          <div className="timeline-now-overlay">
+            <div className="now-line-indicator" style={{ left: `${nowPos.pct}%` }}>
+              <div className="now-pill font-mono">
+                <span className="now-pulse-dot"></span>
+                <span>NOW {minutesToHhmm(nowPos.minutes)}</span>
               </div>
-            );
-          })}
+              <div className="now-vertical-beam"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -284,4 +301,3 @@ export default function PlatformTimeline({
     </div>
   );
 }
-

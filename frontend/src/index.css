@@ -1,51 +1,71 @@
-/* Base Reset & Typography */
+/* RailSync Theme - Warm Cream Human-Crafted Aesthetic */
 :root {
-  --bg-core: #090e17;
-  --bg-surface: #111927;
-  --bg-surface-elevated: #1a2436;
-  --bg-surface-hover: #223046;
-  
-  --border-subtle: #1e2c42;
-  --border-medium: #2a3c5a;
-  --border-focus: #38bdf8;
+  /* Warm cream background tokens */
+  --bg-cream-base: #f7f5ef;
+  --bg-cream-surface: #ffffff;
+  --bg-cream-warm: #faf8f4;
+  --bg-cream-shade: #eee9df;
 
-  --text-main: #f1f5f9;
-  --text-secondary: #94a3b8;
+  /* Translucent frosted glass tokens (warm white glass, crisp borders) */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.95);
+  --glass-bg-subtle: rgba(250, 248, 244, 0.75);
+  --glass-bg-hover: #ffffff;
+  --glass-border: rgba(214, 209, 198, 0.75);
+  --glass-border-subtle: rgba(228, 224, 215, 0.7);
+  --glass-border-glow: rgba(2, 132, 199, 0.4);
+  --glass-blur: 16px;
+  --glass-radius: 16px;
+  --glass-shadow: 0 4px 20px -2px rgba(45, 35, 25, 0.06), 0 2px 6px -1px rgba(45, 35, 25, 0.04);
+  --glass-shadow-sm: 0 2px 8px rgba(45, 35, 25, 0.05);
+
+  /* High contrast human-crafted typography tokens */
+  --text-main: #181e29;
+  --text-secondary: #475569;
   --text-muted: #64748b;
-  --text-dim: #475569;
+  --text-dim: #94a3b8;
 
-  /* Restrained railway control room accents */
-  --accent-cyan: #38bdf8;
-  --accent-cyan-glow: rgba(56, 189, 248, 0.15);
-  
-  --accent-green: #10b981;
-  --accent-green-bg: rgba(16, 185, 129, 0.12);
-  --accent-green-border: rgba(16, 185, 129, 0.3);
+  /* Preserved status color tokens */
+  --accent-cyan: #0284c7;
+  --accent-cyan-bg: rgba(2, 132, 199, 0.1);
+  --accent-cyan-border: rgba(2, 132, 199, 0.35);
 
-  --accent-amber: #f59e0b;
-  --accent-amber-bg: rgba(245, 158, 11, 0.12);
-  --accent-amber-border: rgba(245, 158, 11, 0.3);
+  --accent-green: #059669;
+  --accent-green-bg: rgba(5, 150, 105, 0.1);
+  --accent-green-border: rgba(5, 150, 105, 0.35);
 
-  --accent-red: #ef4444;
-  --accent-red-bg: rgba(239, 68, 68, 0.12);
-  --accent-red-border: rgba(239, 68, 68, 0.3);
+  --accent-amber: #d97706;
+  --accent-amber-bg: rgba(217, 119, 6, 0.1);
+  --accent-amber-border: rgba(217, 119, 6, 0.35);
 
-  --accent-purple: #a855f7;
-  --accent-purple-bg: rgba(168, 85, 247, 0.12);
-  --accent-purple-border: rgba(168, 85, 247, 0.3);
-  
+  --accent-red: #dc2626;
+  --accent-red-bg: rgba(220, 38, 38, 0.1);
+  --accent-red-border: rgba(220, 38, 38, 0.35);
+
+  --accent-purple: #7e22ce;
+  --accent-purple-bg: rgba(126, 34, 206, 0.1);
+  --accent-purple-border: rgba(126, 34, 206, 0.35);
+
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, Menlo, monospace;
 }
 
+/* Base box model reset */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+/* Warm cream background with natural daylight gradients */
 html, body {
-  background-color: var(--bg-core);
+  background-color: var(--bg-cream-base);
+  background-image:
+    radial-gradient(at 10% 10%, #fdfcf9 0px, transparent 50%),
+    radial-gradient(at 90% 15%, #f2ede2 0px, transparent 50%),
+    radial-gradient(at 50% 90%, #ece5d6 0px, transparent 60%),
+    radial-gradient(at 85% 80%, #f5efe3 0px, transparent 50%);
+  background-attachment: fixed;
   color: var(--text-main);
   font-family: var(--font-sans);
   font-size: 14px;
@@ -56,22 +76,24 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Custom Dark Scrollbars */
+/* Warm subtle scrollbars */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-core);
+  background: rgba(0, 0, 0, 0.04);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-medium);
-  border-radius: 4px;
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: rgba(100, 116, 139, 0.6);
 }
 
+/* Shared utility classes */
 .font-mono {
   font-family: var(--font-mono);
 }
@@ -82,3 +104,12 @@ html, body {
   white-space: nowrap;
 }
 
+/* Motion preference accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

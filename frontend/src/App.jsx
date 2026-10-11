@@ -192,6 +192,13 @@ export default function App() {
 
   return (
     <div className="control-app-layout">
+      {/* Decorative blurred background glowing blobs */}
+      <div className="glass-blobs" aria-hidden="true">
+        <div className="glass-blob glass-blob-1" />
+        <div className="glass-blob glass-blob-2" />
+        <div className="glass-blob glass-blob-3" />
+      </div>
+
       {/* Top Header */}
       <Header
         backendStatus={backendStatus}
