@@ -1,6 +1,6 @@
-# ExpressWay
+# RailSync
 
-ExpressWay is a lightweight Express.js starter project for building fast, scalable web APIs and backend services. It includes a clean structure, environment-based configuration, and common middleware patterns to help you start development quickly.
+RailSync is a lightweight Express.js starter project for building fast, scalable web APIs and backend services. It includes a clean structure, environment-based configuration, and common middleware patterns to help you start development quickly.
 
 ## Features
 
